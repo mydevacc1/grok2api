@@ -8,18 +8,18 @@ WORKDIR /src/frontend
 RUN corepack enable
 
 COPY frontend/package.json frontend/pnpm-lock.yaml ./
-RUN --mount=type=cache,id=cache-grok2api-pnpm,target=/pnpm/store \
+RUN --mount=type=cache,id=cacheKey-grok2api-pnpm,target=/pnpm/store \
     pnpm config set store-dir /pnpm/store && \
     pnpm fetch --frozen-lockfile
 
-RUN --mount=type=cache,id=cache-grok2api-pnpm,target=/pnpm/store \
+RUN --mount=type=cache,id=cacheKey-grok2api-pnpm,target=/pnpm/store \
     pnpm config set store-dir /pnpm/store && \
     pnpm install --offline --frozen-lockfile
 
 COPY frontend/index.html frontend/vite.config.ts frontend/tsconfig.json frontend/tsconfig.app.json frontend/tsconfig.node.json ./
 COPY frontend/public ./public
 COPY frontend/src ./src
-RUN --mount=type=cache,id=cache-grok2api-tsc,target=/src/frontend/.cache,sharing=locked \
+RUN --mount=type=cache,id=cacheKey-grok2api-tsc,target=/src/frontend/.cache,sharing=locked \
     pnpm build
 
 
@@ -32,14 +32,14 @@ WORKDIR /src/backend
 RUN apk add --no-cache ca-certificates git
 
 COPY backend/go.mod backend/go.sum ./
-RUN --mount=type=cache,id=cache-grok2api-go-mod,target=/go/pkg/mod,sharing=locked \
+RUN --mount=type=cache,id=cacheKey-grok2api-go-mod,target=/go/pkg/mod,sharing=locked \
     go mod download
 
 COPY backend/cmd ./cmd
 COPY backend/internal ./internal
 COPY backend/docs/docs.go ./docs/docs.go
-RUN --mount=type=cache,id=cache-grok2api-go-mod,target=/go/pkg/mod,sharing=locked \
-    --mount=type=cache,id=cache-grok2api-go-build,target=/root/.cache/go-build,sharing=locked \
+RUN --mount=type=cache,id=cacheKey-grok2api-go-mod,target=/go/pkg/mod,sharing=locked \
+    --mount=type=cache,id=cacheKey-grok2api-go-build,target=/root/.cache/go-build,sharing=locked \
     CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
     go build -buildvcs=false -trimpath -ldflags="-s -w" -o /out/grok2api ./cmd/grok2api
 
